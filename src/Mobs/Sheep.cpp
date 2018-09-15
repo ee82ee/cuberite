@@ -5,7 +5,7 @@
 #include "../Entities/Player.h"
 #include "../World.h"
 #include "../EffectID.h"
-#include "FastRandom.h"
+#include "../FastRandom.h"
 
 
 
@@ -35,6 +35,11 @@ cSheep::cSheep(int a_Color) :
 
 void cSheep::GetDrops(cItems & a_Drops, cEntity * a_Killer)
 {
+	if (IsBaby())
+	{
+		return;  // Babies don't drop items
+	}
+
 	if (!m_IsSheared)
 	{
 		a_Drops.push_back(cItem(E_BLOCK_WOOL, 1, static_cast<short>(m_WoolColor)));
@@ -67,7 +72,7 @@ void cSheep::OnRightClicked(cPlayer & a_Player)
 		char NumDrops = GetRandomProvider().RandInt<char>(1, 3);
 		Drops.emplace_back(E_BLOCK_WOOL, NumDrops, static_cast<short>(m_WoolColor));
 		m_World->SpawnItemPickups(Drops, GetPosX(), GetPosY(), GetPosZ(), 10);
-		m_World->BroadcastSoundEffect("entity.sheep.shear", GetPosX(), GetPosY(), GetPosZ(), 1.0f, 1.0f);
+		m_World->BroadcastSoundEffect("entity.sheep.shear", GetPosition(), 1.0f, 1.0f);
 	}
 	else if ((EquippedItem.m_ItemType == E_ITEM_DYE) && (m_WoolColor != 15 - EquippedItem.m_ItemDamage))
 	{
@@ -112,7 +117,7 @@ void cSheep::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
 			{
 				// The sheep ate the grass so we change it to dirt
 				m_World->SetBlock(PosX, PosY, PosZ, E_BLOCK_DIRT, 0);
-				GetWorld()->BroadcastSoundParticleEffect(EffectID::PARTICLE_BLOCK_BREAK, PosX, PosY, PosX, E_BLOCK_GRASS);
+				GetWorld()->BroadcastSoundParticleEffect(EffectID::PARTICLE_BLOCK_BREAK, {PosX, PosY, PosX}, E_BLOCK_GRASS);
 				m_IsSheared = false;
 				m_World->BroadcastEntityMetadata(*this);
 			}
@@ -203,4 +208,3 @@ NIBBLETYPE cSheep::GenerateNaturalRandomColor(void)
 		return E_META_WOOL_PINK;
 	}
 }
-

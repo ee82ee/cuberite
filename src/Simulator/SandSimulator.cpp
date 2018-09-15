@@ -276,7 +276,7 @@ void cSandSimulator::FinishFalling(
 		a_World->SetBlock(a_BlockX, a_BlockY, a_BlockZ, a_FallingBlockType, a_FallingBlockMeta);
 		if (a_FallingBlockType == E_BLOCK_ANVIL)
 		{
-			a_World->BroadcastSoundParticleEffect(EffectID::SFX_RANDOM_ANVIL_LAND, a_BlockX, a_BlockY, a_BlockZ, 0);
+			a_World->BroadcastSoundParticleEffect(EffectID::SFX_RANDOM_ANVIL_LAND, {a_BlockX, a_BlockY, a_BlockZ}, 0);
 		}
 		return;
 	}
@@ -318,6 +318,11 @@ void cSandSimulator::DoInstantFall(cChunk * a_Chunk, int a_RelX, int a_RelY, int
 		else if (!CanContinueFallThrough(BlockType))
 		{
 			BlockY = y + 1;
+		}
+		else if ((FallingBlockType == E_BLOCK_CONCRETE_POWDER) && IsBlockWater(BlockType))
+		{
+			FallingBlockType = E_BLOCK_CONCRETE;
+			BlockY = y;
 		}
 		else
 		{

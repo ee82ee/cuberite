@@ -12,7 +12,6 @@ typedef std::vector<int> cSlotNums;
 
 
 
-
 // tolua_begin
 
 /** Experience Orb setup */
@@ -277,8 +276,7 @@ inline const char * ClickActionToString(int a_ClickAction)
 
 		case caUnknown:                      return "caUnknown";
 	}
-	ASSERT(!"Unknown click action");
-	return "caUnknown";
+	UNREACHABLE("Unknown click action");
 }
 
 
@@ -299,12 +297,9 @@ inline eBlockFace MirrorBlockFaceY(eBlockFace a_BlockFace)
 		case BLOCK_FACE_YP:
 		{
 			return a_BlockFace;
-		};
+		}
 	}
-	#if !defined(__clang__)
-		ASSERT(!"Unknown BLOCK_FACE");
-		return a_BlockFace;
-	#endif
+	UNREACHABLE("Unsupported block face");
 }
 
 
@@ -327,10 +322,7 @@ inline eBlockFace RotateBlockFaceCCW(eBlockFace a_BlockFace)
 			return a_BlockFace;
 		}
 	}
-	#if !defined(__clang__)
-		ASSERT(!"Unknown BLOCK_FACE");
-		return a_BlockFace;
-	#endif
+	UNREACHABLE("Unsupported block face");
 }
 
 
@@ -350,12 +342,9 @@ inline eBlockFace RotateBlockFaceCW(eBlockFace a_BlockFace)
 		case BLOCK_FACE_YP:
 		{
 			return a_BlockFace;
-		};
+		}
 	}
-	#if !defined(__clang__)
-		ASSERT(!"Unknown BLOCK_FACE");
-		return a_BlockFace;
-	#endif
+	UNREACHABLE("Unsupported block face");
 }
 
 
@@ -374,10 +363,7 @@ inline eBlockFace ReverseBlockFace(eBlockFace  a_BlockFace)
 		case BLOCK_FACE_ZM:   return BLOCK_FACE_ZP;
 		case BLOCK_FACE_NONE: return a_BlockFace;
 	}
-	#if !defined(__clang__)
-		ASSERT(!"Unknown BLOCK_FACE");
-		return a_BlockFace;
-	#endif
+	UNREACHABLE("Unsupported block face");
 }
 
 
@@ -397,10 +383,7 @@ inline AString BlockFaceToString(eBlockFace a_BlockFace)
 		case BLOCK_FACE_ZP: return "BLOCK_FACE_ZP";
 		case BLOCK_FACE_NONE: return "BLOCK_FACE_NONE";
 	}
-	// clang optimisises this line away then warns that it has done so.
-	#if !defined(__clang__)
-		return Printf("Unknown BLOCK_FACE: %d", a_BlockFace);
-	#endif
+	UNREACHABLE("Unsupported block face");
 }
 
 
@@ -1174,6 +1157,25 @@ namespace ItemCategory
 			IsLeggings(a_ItemType) ||
 			IsBoots(a_ItemType)
 		);
+	}
+
+
+
+	inline bool IsHorseArmor(short a_ItemType)
+	{
+		switch (a_ItemType)
+		{
+			case E_ITEM_IRON_HORSE_ARMOR:
+			case E_ITEM_GOLD_HORSE_ARMOR:
+			case E_ITEM_DIAMOND_HORSE_ARMOR:
+			{
+				return true;
+			}
+			default:
+			{
+				return false;
+			}
+		}
 	}
 }
 

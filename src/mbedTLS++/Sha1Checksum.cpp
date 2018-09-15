@@ -1,4 +1,4 @@
-﻿
+
 // Sha1Checksum.cpp
 
 // Declares the cSha1Checksum class representing the SHA-1 checksum calculator
@@ -44,7 +44,6 @@ public:
 	}
 } test;
 */
-
 
 
 
@@ -121,7 +120,6 @@ void cSha1Checksum::DigestToJava(const Checksum & a_Digest, AString & a_Out)
 		a_Out.insert(0, "-");
 	}
 }
-
 
 
 

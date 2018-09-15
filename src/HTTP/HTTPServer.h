@@ -1,4 +1,4 @@
-﻿
+
 // HTTPServer.h
 
 // Declares the cHTTPServer class representing a HTTP webserver that uses cListenThread and cSocketThreads for processing
@@ -11,8 +11,8 @@
 
 #include "../OSSupport/Network.h"
 #include "../IniFile.h"
-#include "mbedTLS++/CryptoKey.h"
-#include "mbedTLS++/X509Cert.h"
+#include "../mbedTLS++/CryptoKey.h"
+#include "../mbedTLS++/X509Cert.h"
 
 
 
@@ -22,7 +22,6 @@
 class cHTTPIncomingRequest;
 class cHTTPServerConnection;
 class cSslConfig;
-
 
 
 

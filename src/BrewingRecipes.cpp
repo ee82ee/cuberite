@@ -11,9 +11,6 @@
 
 
 
-
-
-
 cBrewingRecipes::cBrewingRecipes()
 {
 	ReloadRecipes();
@@ -55,7 +52,7 @@ void cBrewingRecipes::ReloadRecipes(void)
 		AddRecipeFromLine(ParsingLine, LineNum);
 	}  // while (getline(ParsingLine))
 
-	LOG("Loaded " SIZE_T_FMT " brewing recipes", m_Recipes.size());
+	LOG("Loaded %zu brewing recipes", m_Recipes.size());
 }
 
 
@@ -192,7 +189,6 @@ const cBrewingRecipes::cRecipe * cBrewingRecipes::GetRecipeFrom(const cItem & a_
 	}
 	return nullptr;
 }
-
 
 
 

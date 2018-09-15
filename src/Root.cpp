@@ -1,4 +1,4 @@
-﻿
+
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
 #include "Root.h"
@@ -36,7 +36,6 @@
 #include "LoggerListeners.h"
 #include "BuildInfo.h"
 #include "IniFile.h"
-#include "SettingsRepositoryInterface.h"
 #include "OverridesSettingsRepository.h"
 #include "Logger.h"
 #include "ClientHandle.h"
@@ -72,7 +71,7 @@ cRoot::cRoot(void) :
 
 cRoot::~cRoot()
 {
-	s_Root = 0;
+	s_Root = nullptr;
 }
 
 
@@ -87,10 +86,8 @@ void cRoot::InputThread(cRoot & a_Params)
 	while (a_Params.m_InputThreadRunFlag.test_and_set() && std::cin.good())
 	{
 		#ifndef _WIN32
-			static const std::chrono::microseconds PollPeriod = std::chrono::milliseconds{ 100 };
-
 			timeval Timeout{ 0, 0 };
-			Timeout.tv_usec = static_cast<long>(PollPeriod.count());
+			Timeout.tv_usec = 100 * 1000;  // 100 msec
 
 			fd_set ReadSet;
 			FD_ZERO(&ReadSet);
@@ -215,7 +212,7 @@ void cRoot::Start(std::unique_ptr<cSettingsRepositoryInterface> a_OverridesRepo)
 	m_BrewingRecipes.reset(new cBrewingRecipes());
 
 	LOGD("Loading worlds...");
-	LoadWorlds(*settingsRepo, IsNewIniFile);
+	LoadWorlds(dd, *settingsRepo, IsNewIniFile);
 
 	LOGD("Loading plugin manager...");
 	m_PluginManager = new cPluginManager(dd);
@@ -399,7 +396,7 @@ void cRoot::LoadGlobalSettings()
 
 
 
-void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIniFile)
+void cRoot::LoadWorlds(cDeadlockDetect & a_dd, cSettingsRepositoryInterface & a_Settings, bool a_IsNewIniFile)
 {
 	if (a_IsNewIniFile)
 	{
@@ -409,19 +406,28 @@ void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIn
 		a_Settings.AddValue("WorldPaths", "world", "world");
 		a_Settings.AddValue("WorldPaths", "world_nether", "world_nether");
 		a_Settings.AddValue("WorldPaths", "world_the_end", "world_the_end");
-		m_pDefaultWorld = new cWorld("world", "world");
+
+		AStringVector WorldNames{ "world", "world_nether", "world_the_end" };
+		m_pDefaultWorld = new cWorld("world", "world", a_dd, WorldNames);
 		m_WorldsByName["world"] = m_pDefaultWorld;
-		m_WorldsByName["world_nether"] = new cWorld("world_nether", "world_nether", dimNether, "world");
-		m_WorldsByName["world_the_end"] = new cWorld("world_the_end", "world_the_end", dimEnd, "world");
+		m_WorldsByName["world_nether"] = new cWorld("world_nether", "world_nether", a_dd, WorldNames, dimNether, "world");
+		m_WorldsByName["world_the_end"] = new cWorld("world_the_end", "world_the_end", a_dd, WorldNames, dimEnd, "world");
 		return;
 	}
 
-	// First get the default world
+	// Build a list of all world names
+	auto Worlds = a_Settings.GetValues("Worlds");
+	AStringVector WorldNames(Worlds.size());
+	for (const auto & World : Worlds)
+	{
+		WorldNames.push_back(World.second);
+	}
+
+	// Get the default world
 	AString DefaultWorldName = a_Settings.GetValueSet("Worlds", "DefaultWorld", "world");
 	AString DefaultWorldPath = a_Settings.GetValueSet("WorldPaths", DefaultWorldName, DefaultWorldName);
-	m_pDefaultWorld = new cWorld(DefaultWorldName.c_str(), DefaultWorldPath.c_str());
+	m_pDefaultWorld = new cWorld(DefaultWorldName.c_str(), DefaultWorldPath.c_str(), a_dd, WorldNames);
 	m_WorldsByName[ DefaultWorldName ] = m_pDefaultWorld;
-	auto Worlds = a_Settings.GetValues("Worlds");
 
 	// Then load the other worlds
 	if (Worlds.size() <= 0)
@@ -518,7 +524,7 @@ void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIn
 			}
 			Dimension = dimEnd;
 		}
-		NewWorld = new cWorld(WorldName.c_str(), WorldPath.c_str(), Dimension, LinkTo);
+		NewWorld = new cWorld(WorldName.c_str(), WorldPath.c_str(), a_dd, WorldNames, Dimension, LinkTo);
 		m_WorldsByName[WorldName] = NewWorld;
 	}  // for i - Worlds
 
@@ -540,7 +546,7 @@ void cRoot::StartWorlds(cDeadlockDetect & a_DeadlockDetect)
 {
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
-		itr->second->Start(a_DeadlockDetect);
+		itr->second->Start();
 		itr->second->InitializeSpawn();
 		m_PluginManager->CallHookWorldStarted(*itr->second);
 	}
@@ -748,6 +754,8 @@ void cRoot::SendPlayerLists(cPlayer * a_DestPlayer)
 
 
 
+
+
 void cRoot::BroadcastPlayerListsAddPlayer(const cPlayer & a_Player, const cClientHandle * a_Exclude)
 {
 	for (const auto & itr : m_WorldsByName)
@@ -755,6 +763,21 @@ void cRoot::BroadcastPlayerListsAddPlayer(const cPlayer & a_Player, const cClien
 		itr.second->BroadcastPlayerListAddPlayer(a_Player);
 	}  // for itr - m_WorldsByName[]
 }
+
+
+
+
+
+void cRoot::BroadcastPlayerListsRemovePlayer(const cPlayer & a_Player, const cClientHandle * a_Exclude)
+{
+	for (const auto & itr : m_WorldsByName)
+	{
+		itr.second->BroadcastPlayerListRemovePlayer(a_Player);
+	}  // for itr - m_WorldsByName[]
+}
+
+
+
 
 
 void cRoot::BroadcastChat(const AString & a_Message, eMessageType a_ChatPrefix)
@@ -776,6 +799,8 @@ void cRoot::BroadcastChat(const cCompositeChat & a_Message)
 		itr->second->BroadcastChat(a_Message);
 	}  // for itr - m_WorldsByName[]
 }
+
+
 
 
 
@@ -1022,11 +1047,11 @@ void cRoot::LogChunkStats(cCommandOutputCallback & a_Output)
 		int Mem = NumValid * static_cast<int>(sizeof(cChunk));
 		a_Output.Out("  Memory used by chunks: %d KiB (%d MiB)", (Mem + 1023) / 1024, (Mem + 1024 * 1024 - 1) / (1024 * 1024));
 		a_Output.Out("  Per-chunk memory size breakdown:");
-		a_Output.Out("    block types:    " SIZE_T_FMT_PRECISION(6)  " bytes (" SIZE_T_FMT_PRECISION(3)  " KiB)", sizeof(cChunkDef::BlockTypes), (sizeof(cChunkDef::BlockTypes) + 1023) / 1024);
-		a_Output.Out("    block metadata: " SIZE_T_FMT_PRECISION(6)  " bytes (" SIZE_T_FMT_PRECISION(3)  " KiB)", sizeof(cChunkDef::BlockNibbles), (sizeof(cChunkDef::BlockNibbles) + 1023) / 1024);
-		a_Output.Out("    block lighting: " SIZE_T_FMT_PRECISION(6)  " bytes (" SIZE_T_FMT_PRECISION(3)  " KiB)", 2 * sizeof(cChunkDef::BlockNibbles), (2 * sizeof(cChunkDef::BlockNibbles) + 1023) / 1024);
-		a_Output.Out("    heightmap:      " SIZE_T_FMT_PRECISION(6)  " bytes (" SIZE_T_FMT_PRECISION(3)  " KiB)", sizeof(cChunkDef::HeightMap), (sizeof(cChunkDef::HeightMap) + 1023) / 1024);
-		a_Output.Out("    biomemap:       " SIZE_T_FMT_PRECISION(6)  " bytes (" SIZE_T_FMT_PRECISION(3)  " KiB)", sizeof(cChunkDef::BiomeMap), (sizeof(cChunkDef::BiomeMap) + 1023) / 1024);
+		a_Output.Out("    block types:    %6zu bytes (%3zu KiB)", sizeof(cChunkDef::BlockTypes), (sizeof(cChunkDef::BlockTypes) + 1023) / 1024);
+		a_Output.Out("    block metadata: %6zu bytes (%3zu KiB)", sizeof(cChunkDef::BlockNibbles), (sizeof(cChunkDef::BlockNibbles) + 1023) / 1024);
+		a_Output.Out("    block lighting: %6zu bytes (%3zu KiB)", 2 * sizeof(cChunkDef::BlockNibbles), (2 * sizeof(cChunkDef::BlockNibbles) + 1023) / 1024);
+		a_Output.Out("    heightmap:      %6zu bytes (%3zu KiB)", sizeof(cChunkDef::HeightMap), (sizeof(cChunkDef::HeightMap) + 1023) / 1024);
+		a_Output.Out("    biomemap:       %6zu bytes (%3zu KiB)", sizeof(cChunkDef::BiomeMap), (sizeof(cChunkDef::BiomeMap) + 1023) / 1024);
 		SumNumValid += NumValid;
 		SumNumDirty += NumDirty;
 		SumNumInLighting += NumInLighting;

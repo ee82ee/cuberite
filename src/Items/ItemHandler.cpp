@@ -494,10 +494,8 @@ void cItemHandler::OnBlockDestroyed(cWorld * a_World, cPlayer * a_Player, const 
 		Handler->DropBlock(ChunkInterface, *a_World, PluginInterface, a_Player, a_BlockX, a_BlockY, a_BlockZ, CanHarvestBlock(Block));
 	}
 
-	if (!cBlockInfo::IsOneHitDig(Block))
-	{
-		a_Player->UseEquippedItem(GetDurabilityLossByAction(dlaBreakBlock));
-	}
+	auto Action = (cBlockInfo::IsOneHitDig(Block) ? dlaBreakBlockInstant : dlaBreakBlock);
+	a_Player->UseEquippedItem(Action);
 }
 
 
@@ -507,7 +505,7 @@ void cItemHandler::OnBlockDestroyed(cWorld * a_World, cPlayer * a_Player, const 
 void cItemHandler::OnEntityAttack(cPlayer * a_Attacker, cEntity * a_AttackedEntity)
 {
 	UNUSED(a_AttackedEntity);
-	a_Attacker->UseEquippedItem(GetDurabilityLossByAction(dlaAttackEntity));
+	a_Attacker->UseEquippedItem(dlaAttackEntity);
 }
 
 
@@ -527,15 +525,9 @@ void cItemHandler::OnFoodEaten(cWorld * a_World, cPlayer * a_Player, cItem * a_I
 
 short cItemHandler::GetDurabilityLossByAction(eDurabilityLostAction a_Action)
 {
-	switch (a_Action)
-	{
-		case dlaAttackEntity: return 2;
-		case dlaBreakBlock:   return 1;
-	}
+	UNUSED(a_Action);
 
-	#ifndef __clang__
 	return 0;
-	#endif
 }
 
 
@@ -612,6 +604,7 @@ char cItemHandler::GetMaxStackSize(void)
 		case E_ITEM_HEAD:                 return 64;
 		case E_ITEM_JUNGLE_DOOR:          return 64;
 		case E_ITEM_IRON:                 return 64;
+		case E_ITEM_IRON_DOOR:            return 64;
 		case E_ITEM_IRON_NUGGET:          return 64;
 		case E_ITEM_ITEM_FRAME:           return 64;
 		case E_ITEM_LEAD:                 return 64;
@@ -659,6 +652,7 @@ char cItemHandler::GetMaxStackSize(void)
 		case E_ITEM_SUGAR_CANE:           return 64;
 		case E_ITEM_TIPPED_ARROW:         return 64;
 		case E_ITEM_WHEAT:                return 64;
+		case E_ITEM_WOODEN_DOOR:          return 64;
 		// By default items don't stack:
 		default:                          return 1;
 	}
@@ -710,7 +704,6 @@ bool cItemHandler::IsPlaceable(void)
 	// We can place any block that has a corresponding E_BLOCK_TYPE:
 	return (m_ItemType >= 1) && (m_ItemType <= E_BLOCK_MAX_TYPE_ID);
 }
-
 
 
 
@@ -828,17 +821,8 @@ bool cItemHandler::GetPlacementBlockTypeMeta(
 
 bool cItemHandler::EatItem(cPlayer * a_Player, cItem * a_Item)
 {
-	if (!a_Player->IsGameModeCreative())
-	{
-		a_Player->GetInventory().RemoveOneEquippedItem();
-	}
-
-	FoodInfo Info = GetFoodInfo(a_Item);
-	if ((Info.FoodLevel > 0) || (Info.Saturation > 0.f))
-	{
-		return a_Player->Feed(Info.FoodLevel, Info.Saturation);
-	}
-	return false;
+	auto FoodInfo = GetFoodInfo(a_Item);
+	return a_Player->Feed(FoodInfo.FoodLevel, FoodInfo.Saturation);
 }
 
 
@@ -855,12 +839,7 @@ cItemHandler::FoodInfo cItemHandler::GetFoodInfo(const cItem * a_Item)
 
 
 
-
-
-
-
 float cItemHandler::GetBlockBreakingStrength(BLOCKTYPE a_Block)
 {
 	return 1.0f;
 }
-

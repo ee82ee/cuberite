@@ -1,4 +1,4 @@
-﻿
+
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
 #include "BeaconEntity.h"
@@ -231,11 +231,7 @@ void cBeaconEntity::GiveEffects(void)
 		EffectLevel = 1;
 	}
 
-	cEntityEffect::eType SecondaryEffect = cEntityEffect::effNoEffect;
-	if ((m_BeaconLevel >= 4) && (m_PrimaryEffect != m_SecondaryEffect) && (m_SecondaryEffect > 0))
-	{
-		SecondaryEffect = m_SecondaryEffect;
-	}
+	bool HasSecondaryEffect = (m_BeaconLevel >= 4) && (m_PrimaryEffect != m_SecondaryEffect) && (m_SecondaryEffect > 0);
 
 	Vector3d BeaconPosition(m_PosX, m_PosY, m_PosZ);
 	GetWorld()->ForEachPlayer([=](cPlayer & a_Player)
@@ -251,7 +247,7 @@ void cBeaconEntity::GiveEffects(void)
 			{
 				a_Player.AddEntityEffect(m_PrimaryEffect, 180, EffectLevel);
 
-				if (m_SecondaryEffect != cEntityEffect::effNoEffect)
+				if (HasSecondaryEffect)
 				{
 					a_Player.AddEntityEffect(m_SecondaryEffect, 180, 0);
 				}
@@ -268,7 +264,7 @@ void cBeaconEntity::GiveEffects(void)
 void cBeaconEntity::CopyFrom(const cBlockEntity & a_Src)
 {
 	Super::CopyFrom(a_Src);
-	auto & src = reinterpret_cast<const cBeaconEntity &>(a_Src);
+	auto & src = static_cast<const cBeaconEntity &>(a_Src);
 	m_BeaconLevel = src.m_BeaconLevel;
 	m_Contents.CopyFrom(src.m_Contents);
 	m_IsActive = src.m_IsActive;

@@ -56,7 +56,7 @@ bool cHopperEntity::GetOutputBlockPos(NIBBLETYPE a_BlockMeta, int & a_OutputX, i
 void cHopperEntity::CopyFrom(const cBlockEntity & a_Src)
 {
 	Super::CopyFrom(a_Src);
-	auto & src = reinterpret_cast<const cHopperEntity &>(a_Src);
+	auto & src = static_cast<const cHopperEntity &>(a_Src);
 	m_LastMoveItemsInTick = src.m_LastMoveItemsInTick;
 	m_LastMoveItemsOutTick = src.m_LastMoveItemsOutTick;
 }
@@ -116,9 +116,8 @@ bool cHopperEntity::UsedBy(cPlayer * a_Player)
 	// Instead of marking the chunk as dirty upon chest contents change, we mark it dirty now
 	// We cannot properly detect contents change, but such a change doesn't happen without a player opening the chest first.
 	// The few false positives aren't much to worry about
-	int ChunkX, ChunkZ;
-	cChunkDef::BlockToChunk(m_PosX, m_PosZ, ChunkX, ChunkZ);
-	m_World->MarkChunkDirty(ChunkX, ChunkZ);
+	cChunkCoords ChunkPos = cChunkDef::BlockToChunk(GetPos());
+	m_World->MarkChunkDirty(ChunkPos.m_ChunkX, ChunkPos.m_ChunkZ);
 	return true;
 }
 
@@ -196,7 +195,7 @@ bool cHopperEntity::MovePickupsIn(cChunk & a_Chunk, Int64 a_CurrentTick)
 	class cHopperPickupSearchCallback
 	{
 	public:
-		cHopperPickupSearchCallback(const Vector3i & a_Pos, cItemGrid & a_Contents) :
+		cHopperPickupSearchCallback(Vector3i a_Pos, cItemGrid & a_Contents) :
 			m_Pos(a_Pos),
 			m_bFoundPickupsAbove(false),
 			m_Contents(a_Contents)

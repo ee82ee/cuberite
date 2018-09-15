@@ -1,6 +1,3 @@
-project (Cuberite)
-
-include_directories ("${PROJECT_SOURCE_DIR}/../")
 
 SET (SRCS
 	SlotArea.cpp
@@ -15,6 +12,7 @@ SET (SRCS
 	EnderChestWindow.cpp
 	FurnaceWindow.cpp
 	HopperWindow.cpp
+	HorseWindow.cpp
 	InventoryWindow.cpp)
 
 SET (HDRS
@@ -30,10 +28,12 @@ SET (HDRS
 	EnderChestWindow.h
 	FurnaceWindow.h
 	HopperWindow.h
+	HorseWindow.h
 	InventoryWindow.h
 	MinecartWithChestWindow.h
 	WindowOwner.h)
 
 if(NOT MSVC)
 	add_library(UI ${SRCS} ${HDRS})
+	target_link_libraries(UI fmt::fmt)
 endif()

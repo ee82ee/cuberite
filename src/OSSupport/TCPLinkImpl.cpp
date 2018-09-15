@@ -1,11 +1,11 @@
-﻿
+
 // TCPLinkImpl.cpp
 
 // Implements the cTCPLinkImpl class implementing the TCP link functionality
 
 #include "Globals.h"
 #include "TCPLinkImpl.h"
-#include "mbedTLS++/SslConfig.h"
+#include "../mbedTLS++/SslConfig.h"
 #include "NetworkSingleton.h"
 #include "ServerHandleImpl.h"
 #include "event2/buffer.h"
@@ -230,7 +230,6 @@ void cTCPLinkImpl::Close(void)
 	}
 	m_Self.reset();
 }
-
 
 
 

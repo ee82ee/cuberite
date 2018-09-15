@@ -1,11 +1,11 @@
-﻿
+
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
 #include "LeashKnot.h"
-#include "ClientHandle.h"
 #include "Player.h"
-#include "Mobs/Monster.h"
-#include "BoundingBox.h"
+#include "../Mobs/Monster.h"
+#include "../BoundingBox.h"
+#include "../ClientHandle.h"
 
 // Ticks to wait in Tick function to optimize calculations
 #define TICK_STEP 10
@@ -80,11 +80,10 @@ void cLeashKnot::TiePlayersLeashedMobs(cPlayer & a_Player, bool a_ShouldBroadcas
 
 
 
-
 void cLeashKnot::KilledBy(TakeDamageInfo & a_TDI)
 {
 	super::KilledBy(a_TDI);
-	m_World->BroadcastSoundEffect("entity.leashknot.break", GetPosX(), GetPosY(), GetPosZ(), 1, 1);
+	m_World->BroadcastSoundEffect("entity.leashknot.break", GetPosition(), 1, 1);
 	Destroy();
 	return;
 }
@@ -115,6 +114,7 @@ void cLeashKnot::SpawnOn(cClientHandle & a_ClientHandle)
 
 
 
+
 void cLeashKnot::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
 {
 	m_TicksAlive++;
@@ -131,7 +131,7 @@ void cLeashKnot::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
 		if (m_TicksToSelfDestroy <= 0)
 		{
 			Destroy();
-			m_World->BroadcastSoundEffect("entity.leashknot.break", GetPosX(), GetPosY(), GetPosZ(), 1, 1);
+			m_World->BroadcastSoundEffect("entity.leashknot.break", GetPosition(), 1, 1);
 		}
 	}
 }

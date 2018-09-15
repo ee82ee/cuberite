@@ -154,8 +154,11 @@ public:
 	/** Send playerlist of all worlds to player */
 	void SendPlayerLists(cPlayer * a_DestPlayer);
 
-	/** Broadcast Player through all worlds */
+	/** Broadcast playerlist addition through all worlds */
 	void BroadcastPlayerListsAddPlayer(const cPlayer & a_Player, const cClientHandle * a_Exclude = nullptr);
+
+	/** Broadcast playerlist removal through all worlds */
+	void BroadcastPlayerListsRemovePlayer(const cPlayer & a_Player, const cClientHandle * a_Exclude = nullptr);
 
 	// tolua_begin
 
@@ -228,7 +231,7 @@ private:
 	void LoadGlobalSettings();
 
 	/** Loads the worlds from settings.ini, creates the worldmap */
-	void LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIniFile);
+	void LoadWorlds(cDeadlockDetect & a_dd, cSettingsRepositoryInterface & a_Settings, bool a_IsNewIniFile);
 
 	/** Starts each world's life */
 	void StartWorlds(cDeadlockDetect & a_DeadlockDetect);

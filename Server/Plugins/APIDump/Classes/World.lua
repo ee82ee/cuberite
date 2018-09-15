@@ -51,6 +51,34 @@ return
 				Params =
 				{
 					{
+						Name = "BlockPos",
+						Type = "Vector3i",
+					},
+					{
+						Name = "ActionByte1",
+						Type = "number",
+					},
+					{
+						Name = "ActionByte2",
+						Type = "number",
+					},
+					{
+						Name = "BlockType",
+						Type = "number",
+					},
+					{
+						Name = "ExcludeClient",
+						Type = "cClientHandle",
+						IsOptional = true,
+					},
+				},
+				Notes = "Broadcasts the BlockAction packet to all clients who have the appropriate chunk loaded (except ExcludeClient). The contents of the packet are specified by the parameters for the call, the blocktype needn't match the actual block that is present in the world data at the specified location.",
+			},
+			BroadcastBlockAction =
+			{
+				Params =
+				{
+					{
 						Name = "BlockX",
 						Type = "number",
 					},
@@ -80,7 +108,7 @@ return
 						IsOptional = true,
 					},
 				},
-				Notes = "Broadcasts the BlockAction packet to all clients who have the appropriate chunk loaded (except ExcludeClient). The contents of the packet are specified by the parameters for the call, the blocktype needn't match the actual block that is present in the world data at the specified location.",
+				Notes = "Broadcasts the BlockAction packet to all clients who have the appropriate chunk loaded (except ExcludeClient). The contents of the packet are specified by the parameters for the call, the blocktype needn't match the actual block that is present in the world data at the specified location. (DEPRECATED)",
 			},
 			BroadcastChat =
 			{
@@ -265,7 +293,67 @@ return
 						IsOptional = true,
 					},
 				},
+				Notes = "Spawns the specified particles to all players in the world exept the optional ExeptClient. A list of available particles by thinkofdeath can be found {{https://gist.github.com/thinkofdeath/5110835|Here}}. <b>OBSOLETE</b>, use the vector-based overload instead",
+			},
+			BroadcastParticleEffect =
+			{
+				Params =
+				{
+					{
+						Name = "ParticleName",
+						Type = "string",
+					},
+					{
+						Name = "SourcePos",
+						Type = "Vector3f"
+					},
+					{
+						Name = "Offset",
+						Type = "Vector3f",
+					},
+					{
+						Name = "ParticleData",
+						Type = "number",
+					},
+					{
+						Name = "ParticleAmount",
+						Type = "number",
+					},
+					{
+						Name = "ExcludeClient",
+						Type = "cClientHandle",
+						IsOptional = true,
+					},
+				},
 				Notes = "Spawns the specified particles to all players in the world exept the optional ExeptClient. A list of available particles by thinkofdeath can be found {{https://gist.github.com/thinkofdeath/5110835|Here}}",
+			},
+			BroadcastSoundEffect =
+			{
+				Params =
+				{
+					{
+						Name = "SoundName",
+						Type = "string",
+					},
+					{
+						Name = "Position",
+						Type = "Vector3d",
+					},
+					{
+						Name = "Volume",
+						Type = "number",
+					},
+					{
+						Name = "Pitch",
+						Type = "number",
+					},
+					{
+						Name = "ExcludeClient",
+						Type = "cClientHandle",
+						IsOptional = true,
+					},
+				},
+				Notes = "Sends the specified sound effect to all players in this world, except the optional ExceptClient",
 			},
 			BroadcastSoundEffect =
 			{
@@ -301,7 +389,7 @@ return
 						IsOptional = true,
 					},
 				},
-				Notes = "Sends the specified sound effect to all players in this world, except the optional ExceptClient",
+				Notes = "Sends the specified sound effect to all players in this world, except the optional ExceptClient (DEPRECATED, use vector-parametered version instead)",
 			},
 			BroadcastSoundParticleEffect =
 			{
@@ -333,7 +421,42 @@ return
 						IsOptional = true,
 					},
 				},
+				Notes = "Sends the specified effect to all players in this world, except the optional ExceptClient. <b>OBSOLETE</b>, use the vector overload instead",
+			},
+			BroadcastSoundParticleEffect =
+			{
+				Params =
+				{
+					{
+						Name = "EffectID",
+						Type = "number",
+					},
+					{
+						Name = "SourcePos",
+						Type = "Vector3i"
+					},
+					{
+						Name = "EffectData",
+						Type = "string",
+					},
+					{
+						Name = "ExcludeClient",
+						Type = "cClientHandle",
+						IsOptional = true,
+					},
+				},
 				Notes = "Sends the specified effect to all players in this world, except the optional ExceptClient",
+			},
+			CastThunderbolt =
+			{
+				Params =
+				{
+					{
+						Name = "Position",
+						Type = "Vector3d",
+					},
+				},
+				Notes = "Creates a thunderbolt at the specified coords",
 			},
 			CastThunderbolt =
 			{
@@ -352,7 +475,7 @@ return
 						Type = "number",
 					},
 				},
-				Notes = "Creates a thunderbolt at the specified coords",
+				Notes = "Creates a thunderbolt at the specified coords (DEPRECATED, use vector-parametered version instead)",
 			},
 			ChangeWeather =
 			{
@@ -844,6 +967,39 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 					},
 				},
 				Notes = "If there is a mob head at the specified coords, calls the CallbackFunction with the {{cMobHeadEntity}} parameter representing the furnace. The CallbackFunction has the following signature: <pre class=\"prettyprint lang-lua\">function Callback({{cMobHeadEntity|MobHeadEntity}})</pre> The function returns false if there is no mob head, or if there is, it returns the bool value that the callback has returned.",
+			},
+			DoWithNearestPlayer =
+			{
+				Params =
+				{
+					{
+						Name = "Position",
+						Type = "Vector3d",
+					},
+					{
+						Name = "RangeLimit",
+						Type = "number",
+					},
+					{
+						Name = "CallbackFunction",
+						Type = "function",
+					},
+					{
+						Name = "CheckLineOfSight",
+						Type = "boolean",
+					},
+					{
+						Name = "IgnoreSpectator",
+						Type = "boolean",
+					},
+				},
+				Returns =
+				{
+					{
+						Type = "boolean",
+					},
+				},
+				Notes = "Calls the specified callback function with the {{cPlayer|player}} nearest to the specified position as its parameter, if they are still within the range limit. The CallbackFunction has the following signature: <pre class=\"prettyprint lang-lua\">function Callback({{cPlayer|Player}})</pre> The function returns false if the player was not found, or whatever bool value the callback returned if the player was found.",
 			},
 			DoWithNoteBlockAt =
 			{
@@ -2170,7 +2326,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the current world is raining (no thunderstorm).",
+				Notes = "Returns true if the current weather is rainy.",
 			},
 			IsWeatherRainAt =
 			{
@@ -2191,7 +2347,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the specified location is raining (takes biomes into account - it never rains in a desert).",
+				Notes = "Returns true if it is rainy at the specified location. This takes into account biomes.",
 			},
 			IsWeatherStorm =
 			{
@@ -2201,7 +2357,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the current world is stormy.",
+				Notes = "Returns true if the current weather is stormy.",
 			},
 			IsWeatherStormAt =
 			{
@@ -2222,7 +2378,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the specified location is stormy (takes biomes into account - no storm in a desert).",
+				Notes = "Returns true if it is stormy at the specified location. This takes into account biomes.",
 			},
 			IsWeatherSunny =
 			{
@@ -2253,7 +2409,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the current weather is sunny at the specified location (takes into account biomes).",
+				Notes = "Returns true if it is sunny at the specified location. This takes into account biomes.",
 			},
 			IsWeatherWet =
 			{
@@ -2263,7 +2419,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the current world has any precipitation (rain or storm).",
+				Notes = "Returns true if the world currently has any precipitation - rain, storm or snow.",
 			},
 			IsWeatherWetAt =
 			{
@@ -2284,7 +2440,24 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 						Type = "boolean",
 					},
 				},
-				Notes = "Returns true if the specified location has any precipitation (rain or storm) (takes biomes into account, deserts are never wet).",
+				Notes = "Returns true if it is raining or storming at the specified location. This takes into account biomes.",
+			},
+			IsWeatherWetAtXYZ =
+			{
+				Params =
+				{
+					{
+						Name = "Pos",
+						Type = "Vector3i",
+					},
+				},
+				Returns =
+				{
+					{
+						Type = "boolean",
+					},
+				},
+				Notes = "Returns true if the specified location has wet weather (rain or storm), using the same logic as IsWeatherWetAt, except that any rain-blocking blocks above the specified position will block the precipitation and this function will return false.",
 			},
 			PrepareChunk =
 			{
@@ -3333,6 +3506,28 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 					Notes = "Spawns a {{cTNTEntity|primed TNT entity}} at the specified coords, with the given fuse ticks. The entity gets a random speed multiplied by the InitialVelocityCoeff, 1 being the default value. Returns the EntityID of the new spawned primed tnt, or {{cEntity#INVALID_ID|cEntity#INVALID_ID}} if no primed tnt was created. (DEPRECATED, use vector-parametered version)",
 				},
 			},
+			SpawnSplitExperienceOrbs =
+			{
+				Params =
+				{
+					{
+						Name = "Position",
+						Type = "Vector3d",
+					},
+					{
+						Name = "Reward",
+						Type = "number",
+					},
+				},
+				Returns =
+				{
+					{
+						Name = "EntityID",
+						Type = "table",
+					},
+				},
+				Notes = "Spawns experience orbs of the specified total value at the given location. The orbs' values are split according to regular Minecraft rules. Returns an array-table of UniqueID of all the orbs.",
+			},
 			TryGetHeight =
 			{
 				Params =
@@ -3570,4 +3765,3 @@ World:ForEachEntity(
 		},
 	},
 }
-

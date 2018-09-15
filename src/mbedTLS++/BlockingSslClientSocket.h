@@ -1,4 +1,4 @@
-﻿
+
 // BlockingSslClientSocket.h
 
 // Declares the cBlockingSslClientSocket class representing a blocking TCP socket with client SSL encryption over it
@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "OSSupport/Network.h"
+#include "../OSSupport/Network.h"
 #include "CallbackSslContext.h"
 
 

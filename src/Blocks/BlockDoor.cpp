@@ -18,12 +18,12 @@ cBlockDoorHandler::cBlockDoorHandler(BLOCKTYPE a_BlockType)
 
 void cBlockDoorHandler::OnDestroyed(cChunkInterface & a_ChunkInterface, cWorldInterface & a_WorldInterface, int a_BlockX, int a_BlockY, int a_BlockZ)
 {
-	NIBBLETYPE OldMeta = a_ChunkInterface.GetBlockMeta(a_BlockX, a_BlockY, a_BlockZ);
+	NIBBLETYPE OldMeta = a_ChunkInterface.GetBlockMeta({a_BlockX, a_BlockY, a_BlockZ});
 
 	if (OldMeta & 8)
 	{
 		// Was upper part of door
-		if (IsDoorBlockType(a_ChunkInterface.GetBlock(a_BlockX, a_BlockY - 1, a_BlockZ)))
+		if (IsDoorBlockType(a_ChunkInterface.GetBlock({a_BlockX, a_BlockY - 1, a_BlockZ})))
 		{
 			a_ChunkInterface.FastSetBlock(a_BlockX, a_BlockY - 1, a_BlockZ, E_BLOCK_AIR, 0);
 		}
@@ -31,7 +31,7 @@ void cBlockDoorHandler::OnDestroyed(cChunkInterface & a_ChunkInterface, cWorldIn
 	else
 	{
 		// Was lower part
-		if (IsDoorBlockType(a_ChunkInterface.GetBlock(a_BlockX, a_BlockY + 1, a_BlockZ)))
+		if (IsDoorBlockType(a_ChunkInterface.GetBlock({a_BlockX, a_BlockY + 1, a_BlockZ})))
 		{
 			a_ChunkInterface.FastSetBlock(a_BlockX, a_BlockY + 1, a_BlockZ, E_BLOCK_AIR, 0);
 		}
@@ -50,7 +50,7 @@ bool cBlockDoorHandler::OnUse(cChunkInterface & a_ChunkInterface, cWorldInterfac
 	UNUSED(a_CursorY);
 	UNUSED(a_CursorZ);
 
-	switch (a_ChunkInterface.GetBlock(a_BlockX, a_BlockY, a_BlockZ))
+	switch (a_ChunkInterface.GetBlock({a_BlockX, a_BlockY, a_BlockZ}))
 	{
 		default:
 		{
@@ -64,7 +64,7 @@ bool cBlockDoorHandler::OnUse(cChunkInterface & a_ChunkInterface, cWorldInterfac
 		case E_BLOCK_OAK_DOOR:
 		{
 			ChangeDoor(a_ChunkInterface, a_BlockX, a_BlockY, a_BlockZ);
-			a_Player.GetWorld()->BroadcastSoundParticleEffect(EffectID::SFX_RANDOM_WOODEN_DOOR_OPEN, a_BlockX, a_BlockY, a_BlockZ, 0, a_Player.GetClientHandle());
+			a_Player.GetWorld()->BroadcastSoundParticleEffect(EffectID::SFX_RANDOM_WOODEN_DOOR_OPEN, {a_BlockX, a_BlockY, a_BlockZ}, 0, a_Player.GetClientHandle());
 			break;
 		}
 		// Prevent iron door from opening on player click
@@ -87,7 +87,7 @@ void cBlockDoorHandler::OnCancelRightClick(cChunkInterface & a_ChunkInterface, c
 	UNUSED(a_ChunkInterface);
 
 	a_WorldInterface.SendBlockTo(a_BlockX, a_BlockY, a_BlockZ, a_Player);
-	NIBBLETYPE Meta = a_ChunkInterface.GetBlockMeta(a_BlockX, a_BlockY, a_BlockZ);
+	NIBBLETYPE Meta = a_ChunkInterface.GetBlockMeta({a_BlockX, a_BlockY, a_BlockZ});
 
 	if (Meta & 0x8)
 	{
@@ -149,6 +149,8 @@ NIBBLETYPE cBlockDoorHandler::MetaRotateCW(NIBBLETYPE a_Meta)
 
 
 
+
+
 NIBBLETYPE cBlockDoorHandler::MetaMirrorXY(NIBBLETYPE a_Meta)
 {
 	/*
@@ -178,6 +180,8 @@ NIBBLETYPE cBlockDoorHandler::MetaMirrorXY(NIBBLETYPE a_Meta)
 	// Not Facing North or South; No change.
 	return a_Meta;
 }
+
+
 
 
 

@@ -5,9 +5,9 @@
 
 #include "Globals.h"
 #include "PrefabPiecePool.h"
-#include "../Bindings/LuaState.h"
-#include "WorldStorage/SchematicFileSerializer.h"
 #include "VerticalStrategy.h"
+#include "../Bindings/LuaState.h"
+#include "../WorldStorage/SchematicFileSerializer.h"
 #include "../StringCompression.h"
 
 
@@ -771,7 +771,7 @@ cPieces cPrefabPiecePool::GetStartingPieces(void)
 
 int cPrefabPiecePool::GetPieceWeight(const cPlacedPiece & a_PlacedPiece, const cPiece::cConnector & a_ExistingConnector, const cPiece & a_NewPiece)
 {
-	return (reinterpret_cast<const cPrefab &>(a_NewPiece)).GetPieceWeight(a_PlacedPiece, a_ExistingConnector);
+	return (static_cast<const cPrefab &>(a_NewPiece)).GetPieceWeight(a_PlacedPiece, a_ExistingConnector);
 }
 
 
@@ -780,7 +780,7 @@ int cPrefabPiecePool::GetPieceWeight(const cPlacedPiece & a_PlacedPiece, const c
 
 int cPrefabPiecePool::GetStartingPieceWeight(const cPiece & a_NewPiece)
 {
-	return (reinterpret_cast<const cPrefab &>(a_NewPiece)).GetDefaultWeight();
+	return (static_cast<const cPrefab &>(a_NewPiece)).GetDefaultWeight();
 }
 
 

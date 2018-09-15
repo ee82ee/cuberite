@@ -1,4 +1,4 @@
-﻿
+
 // NBTChunkSerializer.h
 
 // Declares the cNBTChunkSerializer class that is used for saving individual chunks into NBT format used by Anvil
@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "ChunkDataCallback.h"
+#include "../ChunkDataCallback.h"
 
 
 

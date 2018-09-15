@@ -19,8 +19,8 @@
 
 // Adjust these if a new protocol is added or an old one is removed:
 #define MCS_CLIENT_VERSIONS "1.8.x, 1.9.x, 1.10.x, 1.11.x, 1.12.x"
-#define MCS_PROTOCOL_VERSIONS "47, 107, 108, 109, 110, 210, 315, 316, 335, 338"
-#define MCS_LATEST_PROTOCOL_VERSION 338
+#define MCS_PROTOCOL_VERSIONS "47, 107, 108, 109, 110, 210, 315, 316, 335, 338, 340"
+#define MCS_LATEST_PROTOCOL_VERSION 340
 
 
 
@@ -44,7 +44,8 @@ public:
 		PROTO_VERSION_1_11_1 = 316,
 		PROTO_VERSION_1_12   = 335,
 		PROTO_VERSION_1_12_1 = 338,
-	} ;
+		PROTO_VERSION_1_12_2 = 340,
+	};
 
 	cProtocolRecognizer(cClientHandle * a_Client);
 	virtual ~cProtocolRecognizer() override;
@@ -71,7 +72,7 @@ public:
 	virtual void SendDetachEntity               (const cEntity & a_Entity, const cEntity & a_PreviousVehicle) override;
 	virtual void SendDisconnect                 (const AString & a_Reason) override;
 	virtual void SendEditSign                   (int a_BlockX, int a_BlockY, int a_BlockZ) override;  ///< Request the client to open up the sign editor for the sign (1.6+)
-	virtual void SendEntityEffect               (const cEntity & a_Entity, int a_EffectID, int a_Amplifier, short a_Duration) override;
+	virtual void SendEntityEffect               (const cEntity & a_Entity, int a_EffectID, int a_Amplifier, int a_Duration) override;
 	virtual void SendEntityEquipment            (const cEntity & a_Entity, short a_SlotNum, const cItem & a_Item) override;
 	virtual void SendEntityHeadLook             (const cEntity & a_Entity) override;
 	virtual void SendEntityLook                 (const cEntity & a_Entity) override;
@@ -84,6 +85,7 @@ public:
 	virtual void SendExplosion                  (double a_BlockX, double a_BlockY, double a_BlockZ, float a_Radius, const cVector3iArray & a_BlocksAffected, const Vector3d & a_PlayerMotion) override;
 	virtual void SendGameMode                   (eGameMode a_GameMode) override;
 	virtual void SendHealth                     (void) override;
+	virtual void SendHeldItemChange             (int a_ItemIndex) override;
 	virtual void SendHideTitle                  (void) override;
 	virtual void SendInventorySlot              (char a_WindowID, short a_SlotNum, const cItem & a_Item) override;
 	virtual void SendKeepAlive                  (UInt32 a_PingID) override;
@@ -179,8 +181,3 @@ protected:
 	The cPacketizer's destructor calls this to send the contained packet; protocol may transform the data (compression in 1.8 etc). */
 	virtual void SendPacket(cPacketizer & a_Pkt) override;
 } ;
-
-
-
-
-

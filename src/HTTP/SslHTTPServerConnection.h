@@ -1,4 +1,4 @@
-﻿
+
 // SslHTTPServerConnection.h
 
 // Declares the cSslHTTPServerConnection class representing a HTTP connection made over an SSL link
@@ -10,7 +10,7 @@
 #pragma once
 
 #include "HTTPServerConnection.h"
-#include "mbedTLS++/BufferedSslContext.h"
+#include "../mbedTLS++/BufferedSslContext.h"
 
 
 

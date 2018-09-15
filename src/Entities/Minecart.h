@@ -10,7 +10,7 @@
 #pragma once
 
 #include "Entity.h"
-#include "World.h"
+#include "../World.h"
 #include "../UI/WindowOwner.h"
 
 
@@ -50,6 +50,9 @@ protected:
 	int m_LastDamage;
 	Vector3i m_DetectorRailPosition;
 	bool m_bIsOnDetectorRail;
+
+	/** Applies an acceleration to the minecart parallel to a_ForwardDirection but without allowing backward speed. */
+	void ApplyAcceleration(Vector3d a_ForwardDirection, double a_Acceleration);
 
 	// Overwrite to enforce speed limit
 	virtual void DoSetSpeed(double a_SpeedX, double a_SpeedY, double a_SpeedZ) override;

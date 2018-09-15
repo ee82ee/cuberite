@@ -1,8 +1,8 @@
-﻿
+
 #pragma once
 
 #include "RedstoneHandler.h"
-#include "BlockEntities/ChestEntity.h"
+#include "../../BlockEntities/ChestEntity.h"
 
 
 

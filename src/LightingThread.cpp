@@ -12,7 +12,6 @@
 
 
 
-
 /** Chunk data callback that takes the chunk data and puts them into cLightingThread's m_BlockTypes[] / m_HeightMap[]: */
 class cReader :
 	public cChunkDataCallback
@@ -20,21 +19,31 @@ class cReader :
 	virtual void ChunkData(const cChunkData & a_ChunkBuffer) override
 	{
 		BLOCKTYPE * OutputRows = m_BlockTypes;
-		int InputIdx = 0;
 		int OutputIdx = m_ReadingChunkX + m_ReadingChunkZ * cChunkDef::Width * 3;
-		int MaxHeight = std::min(+cChunkDef::Height, m_MaxHeight + 16);  // Need 16 blocks above the highest
-		for (int y = 0; y < MaxHeight; y++)
+		for (size_t i = 0; i != cChunkData::NumSections; ++i)
 		{
-			for (int z = 0; z < cChunkDef::Width; z++)
+			auto * Section = a_ChunkBuffer.GetSection(i);
+			if (Section == nullptr)
 			{
-				a_ChunkBuffer.CopyBlockTypes(OutputRows + OutputIdx * 16, static_cast<size_t>(InputIdx * 16), 16);
-				InputIdx++;
-				OutputIdx += 3;
-			}  // for z
-			// Skip into the next y-level in the 3x3 chunk blob; each level has cChunkDef::Width * 9 rows
-			// We've already walked cChunkDef::Width * 3 in the "for z" cycle, that makes cChunkDef::Width * 6 rows left to skip
-			OutputIdx += cChunkDef::Width * 6;
-		}  // for y
+				// Skip to the next section
+				OutputIdx += 9 * cChunkData::SectionHeight * cChunkDef::Width;
+				continue;
+			}
+
+			for (size_t OffsetY = 0; OffsetY != cChunkData::SectionHeight; ++OffsetY)
+			{
+				for (size_t Z = 0; Z != cChunkDef::Width; ++Z)
+				{
+					auto InPtr = Section->m_BlockTypes + Z * cChunkDef::Width + OffsetY * cChunkDef::Width * cChunkDef::Width;
+					std::copy_n(InPtr, cChunkDef::Width, OutputRows + OutputIdx * cChunkDef::Width);
+
+					OutputIdx += 3;
+				}
+				// Skip into the next y-level in the 3x3 chunk blob; each level has cChunkDef::Width * 9 rows
+				// We've already walked cChunkDef::Width * 3 in the "for z" cycle, that makes cChunkDef::Width * 6 rows left to skip
+				OutputIdx += cChunkDef::Width * 6;
+			}
+		}
 	}  // BlockTypes()
 
 
@@ -78,6 +87,7 @@ public:
 		m_BlockTypes(a_BlockTypes),
 		m_HeightMap(a_HeightMap)
 	{
+		std::fill_n(m_BlockTypes, cChunkDef::NumBlocks * 9, E_BLOCK_AIR);
 	}
 } ;
 
@@ -88,9 +98,9 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 // cLightingThread:
 
-cLightingThread::cLightingThread(void) :
+cLightingThread::cLightingThread(cWorld & a_World):
 	super("cLightingThread"),
-	m_World(nullptr),
+	m_World(a_World),
 	m_MaxHeight(0),
 	m_NumSeeds(0)
 {
@@ -103,18 +113,6 @@ cLightingThread::cLightingThread(void) :
 cLightingThread::~cLightingThread()
 {
 	Stop();
-}
-
-
-
-
-
-bool cLightingThread::Start(cWorld * a_World)
-{
-	ASSERT(m_World == nullptr);  // Not started yet
-	m_World = a_World;
-
-	return super::Start();
 }
 
 
@@ -141,7 +139,7 @@ void cLightingThread::Stop(void)
 	m_ShouldTerminate = true;
 	m_evtItemAdded.Set();
 
-	Wait();
+	super::Stop();
 }
 
 
@@ -150,8 +148,6 @@ void cLightingThread::Stop(void)
 
 void cLightingThread::QueueChunk(int a_ChunkX, int a_ChunkZ, std::unique_ptr<cChunkCoordCallback> a_CallbackAfter)
 {
-	ASSERT(m_World != nullptr);  // Did you call Start() properly?
-
 	cChunkStay * ChunkStay = new cLightingChunkStay(*this, a_ChunkX, a_ChunkZ, std::move(a_CallbackAfter));
 	{
 		// The ChunkStay will enqueue itself using the QueueChunkStay() once it is fully loaded
@@ -159,7 +155,7 @@ void cLightingThread::QueueChunk(int a_ChunkX, int a_ChunkZ, std::unique_ptr<cCh
 		cCSLock Lock(m_CS);
 		m_PendingQueue.push_back(ChunkStay);
 	}
-	ChunkStay->Enable(*m_World->GetChunkMap());
+	ChunkStay->Enable(*m_World.GetChunkMap());
 }
 
 
@@ -234,11 +230,10 @@ void cLightingThread::Execute(void)
 
 
 
-
 void cLightingThread::LightChunk(cLightingChunkStay & a_Item)
 {
 	// If the chunk is already lit, skip it (report as success):
-	if (m_World->IsChunkLighted(a_Item.m_ChunkX, a_Item.m_ChunkZ))
+	if (m_World.IsChunkLighted(a_Item.m_ChunkX, a_Item.m_ChunkZ))
 	{
 		if (a_Item.m_CallbackAfter != nullptr)
 		{
@@ -319,7 +314,7 @@ void cLightingThread::LightChunk(cLightingChunkStay & a_Item)
 	CompressLight(m_BlockLight, BlockLight);
 	CompressLight(m_SkyLight, SkyLight);
 
-	m_World->ChunkLighted(a_Item.m_ChunkX, a_Item.m_ChunkZ, BlockLight, SkyLight);
+	m_World.ChunkLighted(a_Item.m_ChunkX, a_Item.m_ChunkZ, BlockLight, SkyLight);
 
 	if (a_Item.m_CallbackAfter != nullptr)
 	{
@@ -341,7 +336,7 @@ void cLightingThread::ReadChunks(int a_ChunkX, int a_ChunkZ)
 		for (int x = 0; x < 3; x++)
 		{
 			Reader.m_ReadingChunkX = x;
-			VERIFY(m_World->GetChunkData(a_ChunkX + x - 1, a_ChunkZ + z - 1, Reader));
+			VERIFY(m_World.GetChunkData(a_ChunkX + x - 1, a_ChunkZ + z - 1, Reader));
 		}  // for z
 	}  // for x
 

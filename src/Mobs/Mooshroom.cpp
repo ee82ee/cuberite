@@ -8,11 +8,6 @@
 
 
 
-
-
-
-
-
 cMooshroom::cMooshroom(void) :
 	super("Mooshroom", mtMooshroom, "entity.cow.hurt", "entity.cow.death", 0.9, 1.3)
 {
@@ -24,6 +19,11 @@ cMooshroom::cMooshroom(void) :
 
 void cMooshroom::GetDrops(cItems & a_Drops, cEntity * a_Killer)
 {
+	if (IsBaby())
+	{
+		return;  // Babies don't drop items
+	}
+
 	unsigned int LootingLevel = 0;
 	if (a_Killer != nullptr)
 	{
@@ -72,4 +72,3 @@ void cMooshroom::OnRightClicked(cPlayer & a_Player)
 		} break;
 	}
 }
-

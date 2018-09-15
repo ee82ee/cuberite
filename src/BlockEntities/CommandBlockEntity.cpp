@@ -29,7 +29,6 @@ cCommandBlockEntity::cCommandBlockEntity(BLOCKTYPE a_BlockType, NIBBLETYPE a_Blo
 
 
 
-
 bool cCommandBlockEntity::UsedBy(cPlayer * a_Player)
 {
 	// Nothing to do
@@ -52,7 +51,7 @@ void cCommandBlockEntity::SetCommand(const AString & a_Cmd)
 
 	Just documenting my experience in getting this to work :P
 	*/
-	m_World->BroadcastBlockEntity(GetPosX(), GetPosY(), GetPosZ());
+	m_World->BroadcastBlockEntity(GetPos());
 }
 
 
@@ -61,7 +60,7 @@ void cCommandBlockEntity::SetCommand(const AString & a_Cmd)
 
 void cCommandBlockEntity::SetLastOutput(const AString & a_LastOut)
 {
-	m_World->BroadcastBlockEntity(GetPosX(), GetPosY(), GetPosZ());
+	m_World->BroadcastBlockEntity(GetPos());
 	m_LastOutput = a_LastOut;
 }
 
@@ -117,7 +116,7 @@ void cCommandBlockEntity::Activate(void)
 void cCommandBlockEntity::CopyFrom(const cBlockEntity & a_Src)
 {
 	Super::CopyFrom(a_Src);
-	auto & src = reinterpret_cast<const cCommandBlockEntity &>(a_Src);
+	auto & src = static_cast<const cCommandBlockEntity &>(a_Src);
 	m_Command = src.m_Command;
 	m_LastOutput = src.m_LastOutput;
 	m_Result = src.m_Result;

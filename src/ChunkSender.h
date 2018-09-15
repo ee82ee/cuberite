@@ -1,4 +1,4 @@
-﻿
+
 // ChunkSender.h
 
 // Interfaces to the cChunkSender class representing the thread that waits for chunks becoming ready (loaded / generated) and sends them to clients
@@ -67,13 +67,11 @@ public:
 
 	};
 
-	bool Start();
-
 	void Stop(void);
 
 	/** Queues a chunk to be sent to a specific client */
 	void QueueSendChunkTo(int a_ChunkX, int a_ChunkZ, eChunkPriority a_Priority, cClientHandle * a_Client);
-	void QueueSendChunkTo(int a_ChunkX, int a_ChunkZ, eChunkPriority a_Priority, std::list<cClientHandle *> a_Client);
+	void QueueSendChunkTo(int a_ChunkX, int a_ChunkZ, eChunkPriority a_Priority, cChunkClientHandles a_Client);
 
 	/** Removes the a_Client from all waiting chunk send operations */
 	void RemoveClient(cClientHandle * a_Client);
